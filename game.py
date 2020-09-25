@@ -1,6 +1,8 @@
 import curses
 import time
 import random
+import pandas as pd
+import os
 from assets import Eminem, Bomb, Gun, Bullet
 
 
@@ -9,6 +11,42 @@ stdscr = curses.initscr()
 
 win = curses.newwin(24, 80, 0, 0)
 
+
+def score_processing(score):
+    pattern = ['Name','Score','Date']
+    record = False
+    rating_file = './top_score.csv'
+    if os.path.isfile(rating_file):
+        df = pd.read_csv(rating_file)
+        
+        if score>min(df['Score']):
+            record = True
+    else:
+        print('new')
+        empty = {'Name': ['None']*20, 'Score': [0 for i in range(20)], 'Date':[0 for i in range(20)]}
+        df = pd.DataFrame(empty, index = [i for i in range(20)])
+        df['Date'] = pd.to_datetime(df['Date'])
+        record = True
+    
+    df['_'] = ['' for i in df.index]
+        
+    if record:
+    
+        name = input('Enter your name: ')
+        date_time = pd.Timestamp.now()
+        rec = {'Name': name, 'Score': score,'Date': date_time}
+        df = df.append(rec, ignore_index = True)
+        df = df.sort_values(['Score'], ascending = False).reset_index()
+        
+        cur = df[(df['Score'] == score) & (df['Date'] == date_time)].index[0]
+        df.loc[cur,'_'] = '<<<'
+
+    df['Date & Time'] = [dd.strftime('%d.%m.%Y %H:%M:%S') for dd in pd.to_datetime(df['Date'])]
+    df['#'] = [i+1 for i in list(df.index)]
+    print(df.loc[0:19, ['#','Name', 'Date & Time', 'Score','_']].to_string(na_rep = ' ', index = False))
+    
+    df.loc[0:19,pattern].to_csv(rating_file)    
+    
 
 class Iterate:
   MAX_BOMBS = 20
@@ -169,6 +207,7 @@ curses.endwin()
 
 if state == 'win':
   print(f'\n\n\nCongratulation! Your final score {score}\n\n\n')
+  score_processing(score)
 elif state == 'lost':
   print(f'\n\n\nYOU ARE LOST\n\n\n')
 if key == 27:
