@@ -1,4 +1,5 @@
-# azshooting
+## Shooting Game 
+Python realization
 
 
           ШшшшШ     ШшшшШ     ШшшшШ     ШшшшШ     ШшшшШ     ШшшшШ
